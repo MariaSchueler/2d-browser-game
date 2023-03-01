@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space-Spiel</title>
+
+    <style>
+        *{
+            margin: 0px;
+            padding: 0px;
+            box-sizing: border-box;
+        }
+
+        .background{
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            }
+
+        .background::before {
+            content:"";
+            background-image: url(img/background.png);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            opacity: 0.9;
+            filter: blur(4px);
+            height: 2000px;
+            
+
+        }
+       h1{
+            text-align: center;
+            font-size: 80px;
+            color: aliceblue;
+            font-family: sans-serif;
+            position: relative;
+            bottom: 750px;
+        }
+
+        button {
+            position: absolute;
+            bottom: 350px;
+            left: 872px;
+            
+            
+                     
+        }
+
+        canvas {
+            background-color:  rgba(0, 0, 0, 0.8);
+            padding: 0;
+            margin: auto;
+            display: block;
+            width: 800px;
+            height: 600px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 20px;
+            border: 20px;
+            border-style: solid;
+            border-color: rgba(130, 53, 255, 0.904);
+        }
+
+        header{
+            color: rgba(130, 53, 255, 0.904);
+        }
+
+            
+           
+    </style> 
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.deep_purple-light_blue.min.css" />
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script> 
+
+    <script>
+        let KEY_SPACE = false; //32
+        let KEY_UP = false; //38
+        let KEY_DOWN = false; //40
+        let canvas;
+        let ctx;
+        let backgroundImage = new Image();
+        
+        let ufo = {
+            x: 50,
+            y: 190,
+            width: 150,
+            height: 80,
+            src: `img/ufo.png`
+        };
+
+        let planetss = [];
+        let lasers = [];
+
+        document.onkeydown = function(e) {
+            console.log(e.keyCode);
+            if (e.keyCode == 32) { //leertaste gedrückt
+                KEY_SPACE = true;
+            }
+
+            console.log(e.keyCode);
+            if (e.keyCode == 38) { //nach oben gedrückt
+                KEY_UP = true;
+            }
+
+            console.log(e.keyCode);
+            if (e.keyCode == 40) { //nach unten gedrückt
+                KEY_DOWN = true;
+            }
+        }
+
+         document.onkeyup = function(e) {
+            console.log(e.keyCode);
+            if (e.keyCode == 32) { //leertaste losgelassen
+                KEY_SPACE = false;
+            }
+
+            console.log(e.keyCode);
+            if (e.keyCode == 38) { //nach oben losgelassen
+                KEY_UP = false;
+            }
+
+            console.log(e.keyCode);
+            if (e.keyCode == 40) { //nach unten losgelassen
+                KEY_DOWN = false;
+            }
+        }
+
+        function startGame() {
+            canvas = document.getElementById(`canvas`);
+            ctx = canvas.getContext(`2d`);
+            loadImages();
+            setInterval(update, 1000 / 25);
+            setInterval(createPlanetss, 5000);
+            setInterval(checkForCollision, 1000 / 25);
+            setInterval(checkForHit, 1000 / 10);
+            
+            draw();
+            // calculate
+        }
+
+        function checkForCollision() {
+            
+            planetss.forEach(function(planets) {
+                if (ufo.x + ufo.width > planets.x &&
+                 ufo.y + ufo.height > planets.y &&
+                 ufo.x < planets.x &&
+                 ufo.y < planets.y + planets.height
+                ) {
+                    ufo.img.src =`img/explosion.png`
+                    console.log (`Collision!`);
+                    setTimeout(() => {
+                            planetss = planetss.filter(u => u != planets);
+                        }, 2000);
+                }
+            
+            lasers.forEach(function(laser) {
+                if (laser.x + laser.width > planets.x &&
+                 laser.y + laser.height > planets.y &&
+                 laser.x < planets.x &&
+                 laser.y < planets.y + planets.height
+                )  {
+                    planets.hit = true;
+                    console.log (`Hit!`);
+                    planetss = planetss.filter(u => u != planets);
+                    
+                }
+
+                });
+           
+             });
+        }
+
+        function createPlanetss() {
+            let planets = {
+                x: 800,
+                y: Math.random()*500,
+                width: 150,
+                height: 80,
+                src: `img/planets.png`,
+                img: new Image()
+            }; 
+            planets.img.src = planets.src;
+            planetss.push(planets);
+
+        }
+
+        function checkForHit() {
+            if(KEY_SPACE) {
+            let laser = {
+                x: ufo.x +50,
+                y: ufo.y +45,
+                width: 45,
+                height: 10,
+                src: `img/laser.png`,
+                img: new Image()
+            };
+            laser.img.src = laser.src;
+            lasers.push(laser);
+          }  
+            
+        }
+        
+        function update() {
+            if(KEY_UP) {        //Ufo hoch
+                ufo.y -= 6;
+            }
+
+            if(KEY_DOWN) {      //Ufo runter
+                ufo.y += 6;
+            }
+
+            planetss.forEach(function(planets){ //Planeten
+                if (!planets.hit) {
+                planets.x -=10;
+                }
+            });
+            
+            lasers.forEach(function(laser){
+                laser.x +=7;
+            });                
+               
+        }
+
+        function loadImages() {
+            backgroundImage.src = `img/background.png`;
+            ufo.img = new Image();
+            ufo.img.src = ufo.src;
+
+        }
+
+        function draw() {
+           ctx.drawImage(backgroundImage, 0, 0);
+           ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
+
+           planetss.forEach( function(planets) {
+                ctx.drawImage(planets.img, planets.x, planets.y, planets.width, planets.height);
+           });
+
+           lasers.forEach( function(laser) {
+                ctx.drawImage(laser.img, laser.x, laser.y, laser.width, laser.height);
+           });
+           
+            requestAnimationFrame(draw);
+        }
+
+        
+    </script>
+
+</head>
+<body onload= "startGame()">
+
+    <!-- Always shows a header, even in smaller screens. -->
+
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">Farben</span>
+      <!-- Add spacer, to align navigation to the right -->
+      <div class="mdl-layout-spacer"></div>
+      <!-- Navigation. We hide it in small screens. -->
+      <nav class="mdl-navigation mdl-layout--large-screen-only">
+        <a class="mdl-navigation__link" href=""></a>
+        <a class="mdl-navigation__link" href=""></a>
+        <a class="mdl-navigation__link" href=""></a>
+        <a class="mdl-navigation__link" href=""></a>
+      </nav>
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">Farben</span>
+    <nav class="mdl-navigation">
+      <a class="mdl-navigation__link" href="">Lila</a>
+      <a class="mdl-navigation__link" href="">Blau</a>
+      <a class="mdl-navigation__link" href="">Rot</a>
+      <a class="mdl-navigation__link" href="">Grün</a>
+    </nav>
+  </div>
+  <main class="mdl-layout__content">
+    <div class="page-content"><!-- Your content goes here -->
+     
+        <div class="background">
+        <h1>Zerstöre die Planeten</h1>
+    </div>
+  
+    <canvas id="canvas" width="720" height="480"></canvas>
+    
+    <button id= "refresh" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" onclick="window.location.reload();">
+        Nochmal versuchen!
+      </button>
+    
+    </div>
+  </main>
+</div>
+
+   
+
+    
+</body>
+</html>
